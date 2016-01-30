@@ -1,9 +1,32 @@
 import logging
 import os
+import urllib2
+import json
 
 from nose.plugins import Plugin
 
 log = logging.getLogger('nose.plugins.nose-hipchat')
+
+
+def publish_to_hipchat(url, color, message, notify=False):
+    """
+    Publishes a message to HipChat using HTTP GET.
+    Raises exceptions (from urllib2) for HTTP failure conditions.
+
+    :param url: Complete URL of the form https://yourcompany.hipchat.com/v2/room/12345/notification?auth_token=ABC123
+    :param color: String representing a color understood by HipChat (e.g. "green", "red", "yellow")
+    :param message: Text to publish in HipChat
+    :param notify: Boolean indicating whether HipChat should raise a notification
+    :return: String with response from server.
+    """
+    headers = {"content-type": "application/json"} #, "authorization": "Bearer %s" % V2TOKEN}
+    datastr = json.dumps({"color": color, "message": message, "notify": notify, "message_format":"text"})
+    request = urllib2.Request(url, headers=headers, data=datastr)
+    uo = urllib2.urlopen(request)
+    rawresponse = ''.join(uo)
+    uo.close()
+    return rawresponse
+
 
 class NoseHipChat(Plugin):
     name = 'nose-hipchat'
@@ -11,6 +34,7 @@ class NoseHipChat(Plugin):
     def __init__(self):
         super(NoseHipChat, self).__init__()
         self.epilogue = None
+        self.hipchat_url = None
 
     def options(self, parser, env=os.environ):
         super(NoseHipChat, self).options(parser, env=env)
@@ -32,9 +56,11 @@ class NoseHipChat(Plugin):
         if not self.enabled:
             return
 
-        # Nose plugins (at least in nose.plugins.0.10) use optparse instead of argparse, and the only way
-        # to specify that an option is required is to check for it after the parsing.
-        if not options.hipchat_url:
+        if options.hipchat_url:
+            self.hipchat_url = options.hipchat_url
+        else:
+            # Nose plugins (at least in nose.plugins.0.10) use optparse instead of argparse, and the only way
+            # to specify that an option is required is to check for it after the parsing.
             raise ValueError("Missing required --hipchat-url argument. Example: " +
                              "--hipchat-url=https://yourcompany.hipchat.com/v2/room/12345/notification?auth_token=ABC123")
 
@@ -42,13 +68,18 @@ class NoseHipChat(Plugin):
             self.epilogue = options.hipchat_epilogue
 
     def finalize(self, result):
-        print "XXX: Ran %d test%s" % (result.testsRun, result.testsRun != 1 and "s" or "")
+        color = "red"
+        message = ""
+        message += "\nXXX: Ran %d test%s" % (result.testsRun, result.testsRun != 1 and "s" or "")
         #import pdb; pdb.set_trace()
         if not result.wasSuccessful():
-            print 'XXX: FAILED (failures=%d ' % len(result.failures), 'errors=%d' % len(result.errors), ')'
+            message += '\nXXX: FAILED (failures=%d ' % len(result.failures) + ' errors=%d' % len(result.errors) + ')'
         else:
-            print 'XXX: SUCCEEDED'
+            color = "green"
+            message += '\nXXX: SUCCEEDED'
 
         if self.epilogue is not None:
-            print 'XXX:', self.epilogue
+            message += '\nXXX: ' + self.epilogue
 
+        publishing_result = publish_to_hipchat(self.hipchat_url, color, message)
+        print publishing_result
