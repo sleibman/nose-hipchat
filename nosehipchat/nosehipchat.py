@@ -70,16 +70,33 @@ class NoseHipChat(Plugin):
     def finalize(self, result):
         color = "red"
         message = ""
-        message += "\nXXX: Ran %d test%s" % (result.testsRun, result.testsRun != 1 and "s" or "")
-        #import pdb; pdb.set_trace()
+
+        source = ""
+        if len(result.config.testNames) == 0:
+            source = result.config.workingDir
+        elif len(result.config.testNames) == 1:
+            source = os.path.join(result.config.workingDir, result.config.testNames[0])
+        else:
+            source = result.config.workingDir + str(result.config.testNames)
+
+        message += "\nRan %d test%s from %s" % (result.testsRun, result.testsRun != 1 and "s" or "", source)
+
         if not result.wasSuccessful():
-            message += '\nXXX: FAILED (failures=%d ' % len(result.failures) + ' errors=%d' % len(result.errors) + ')'
+            message += '\nFAILED (failures=%d ' % len(result.failures) + ' errors=%d' % len(result.errors) + ')'
+            if len(result.failures) > 0:
+                message += '\nFailures:'
+                for item in result.failures:
+                    message += '\n* ' + str(item[0])
+            if len(result.errors) > 0:
+                message += '\nErrors:'
+                for item in result.errors:
+                    message += '\n* ' + str(item[0])
         else:
             color = "green"
-            message += '\nXXX: SUCCEEDED'
+            message += '\nSUCCEEDED'
 
         if self.epilogue is not None:
-            message += '\nXXX: ' + self.epilogue
+            message += '\n' + self.epilogue
 
         publishing_result = publish_to_hipchat(self.hipchat_url, color, message)
         print publishing_result
