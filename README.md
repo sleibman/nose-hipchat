@@ -30,8 +30,22 @@ pip install nose-hipchat
 The first thing you'll need is a HipChat account. If you don't have one of those, I can't help you.
 Once you've taken care of that, get an API key for posting to HipChat by using a web browser to log into your HipChat account, navigate to the list of rooms, and create a new interation for the room you want:
 
-![Image](hipchat-1.png?raw=true)
+| Link to Integrations |
+| --- |
+| ![Image](hipchat-1.png?raw=true) |
 
-![Image](hipchat-2.png?raw=true)
 
-![Image](hipchat-3.png?raw=true)
+| Click on "Build Your Own" Integration |
+| --- |
+| ![Image](hipchat-3.png?raw=true) |
+
+| Name your integration |
+| --- |
+| ![Image](hipchat-2.png?raw=true) |
+
+This should result in a URL that has a room ID and an API key in it, with a form something like:
+```
+https://your-company.hipchat.com/v2/room/12345/notification?auth_token=ABC123
+```
+
+You'll need that URL when running nose tests, as seen in the usage description at the top of this page.
