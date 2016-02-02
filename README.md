@@ -28,7 +28,7 @@ pip install nose-hipchat
 
 ### Enable HipChat Publishing
 The first thing you'll need is a HipChat account. If you don't have one of those, I can't help you.
-Once you've taken care of that, get an API key for posting to HipChat by using a web browser to log into your HipChat account, navigate to the list of rooms, and create a new interation for the room you want:
+Once you've taken care of that, get an API key for posting to HipChat by using a web browser to log into your HipChat account, navigate to the list of rooms, and create a new integration for the room you want:
 
 | Link to Integrations |
 | --- |
