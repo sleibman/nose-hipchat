@@ -5,6 +5,7 @@ setup(
     name="nose-hipchat",
     version=nosehipchat.version.__version__,
     author='Steve Leibman',
+    author_email='sleibman@alum.mit.edu',
     description="Nose plugin to post test results to HipChat",
     license="MIT License",
     url="https://github.com/sleibman/nose-hipchat",
